@@ -1,0 +1,49 @@
+# Python caches / virtualenvs
+__pycache__/
+*.py[cod]
+.venv/
+**/.venv/
+
+# Git / IDE
+.git/
+.idea/
+.vscode/
+
+# Local secrets / state
+.env*
+!.env.example
+!.env.deploy.example
+.local/
+
+# Logs / outputs
+logs/
+**/logs/
+outputs/
+**/outputs/
+results/
+**/results/
+exports/
+**/exports/
+packages/
+
+# Large local artifacts
+test.db
+youtu-chem-loop/test.db
+MAD/data/chroma_db/
+MAD/data/chroma_db2/
+MAD/data/
+youtu-chem-loop/chroma_db/
+youtu-chem-loop/chroma_db2/
+# Experience packs (persist via host volume; keep out of image layers)
+MAD/experience/experience.yaml
+MAD/experience/archive/
+youtu-chem-loop/configs/agents/practice/experience.yaml
+# Historical GRPO/feedback run configs are not required by the web runtime.
+# Some older generated files contain provider credentials serialized by the
+# experiment exporter, so keep the whole generated *_agent.yaml family out of
+# image layers. Runtime configs such as chem_performance_agent_single.yaml do
+# not match this suffix and remain available.
+youtu-chem-loop/configs/agents/practice/*_agent.yaml
+# Recommended Docker runtime state dir (host-mounted)
+state/
+样品中金属比例.xlsx

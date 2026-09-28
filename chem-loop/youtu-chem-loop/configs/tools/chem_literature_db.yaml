@@ -1,0 +1,65 @@
+# @package _global_
+mode: builtin
+env_mode: local
+name: chem_literature_db
+
+# If set, only these tools will be exposed. When null, expose all toolkit tools.
+activated_tools: null
+
+config:
+  # Backend selector:
+  # - sqlite: keyword search over an external SQLite DB (no network)
+  # - chroma: vector retrieval over a local persistent Chroma directory (requires Voyage embeddings)
+  backend: ${oc.env:CHEM_LITERATURE_BACKEND,"sqlite"}
+
+  # -------------------------------------------------------------------
+  # sqlite backend config
+  # -------------------------------------------------------------------
+  # Path to an *external* SQLite DB file that contains literature metadata/content.
+  # Provide via env to avoid hard-coding machine-specific paths.
+  db_path: ${oc.env:CHEM_LITERATURE_DB_PATH,""}
+
+  # Table/column names (configurable to match external DB schema).
+  table: papers
+  id_column: paper_id
+  title_column: title
+  abstract_column: abstract
+  doi_column: doi
+  year_column: year
+  url_column: url
+  file_path_column: file_path
+
+  # Search behavior.
+  candidate_multiplier: 10
+  max_candidates: 200
+  snippet_chars: 400
+
+  # Optional extra columns to include verbatim in results (if present in the table).
+  extra_columns: []
+
+  # -------------------------------------------------------------------
+  # chroma backend config
+  # -------------------------------------------------------------------
+  # Persistent Chroma directory.
+  # NOTE: can be overridden via CHEM_LITERATURE_CHROMA_DIR.
+  # Monorepo default: share MAD's built DB to avoid duplicate huge stores.
+  persist_directory: ${oc.env:CHEM_LITERATURE_CHROMA_DIR,"../MAD/data/chroma_db"}
+  # Existing collection name to query.
+  # Default to the Voyage-built per-agent collection (agent2) for query embeddings.
+  collection_name: ${oc.env:CHEM_LITERATURE_CHROMA_COLLECTION,"literature_agent2"}
+  distance_metric: cosine
+  # Safety threshold: filter out candidates with distance > max_distance.
+  # (cosine space: smaller is better; distance ~= 1 - cosine_similarity)
+  max_distance: ${oc.env:CHEM_LITERATURE_CHROMA_MAX_DISTANCE,0.35}
+  # Truncate chunk text returned to the model.
+  # NOTE: use a distinct key from sqlite's `snippet_chars` to avoid YAML duplicate keys.
+  chroma_snippet_chars: ${oc.env:CHEM_LITERATURE_CHROMA_SNIPPET_CHARS,800}
+
+  # Voyage embedding config (query side). API key should come from env.
+  voyage_api_key: ${oc.env:VOYAGE_API_KEY,""}
+  voyage_model: ${oc.env:VOYAGE_EMBED_MODEL,"voyage-3-large"}
+  # If you wrote vectors with Voyage default (input_type unset), keep this empty.
+  # If you wrote vectors with input_type="document", you may want input_type="query" here.
+  voyage_input_type: ${oc.env:VOYAGE_EMBED_INPUT_TYPE,""}
+  voyage_timeout: ${oc.env:VOYAGE_TIMEOUT,30}
+  voyage_max_retries: ${oc.env:VOYAGE_MAX_RETRIES,2}

@@ -1,0 +1,67 @@
+# Never commit real credentials. Keep only reviewed blank templates.
+.env
+.env.*
+!.env.example
+!.env.deploy.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+
+# Environments, caches, editor files and local release tooling.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.local/
+node_modules/
+.DS_Store
+.idea/
+.vscode/
+build/
+dist/
+*.egg-info/
+
+# Persistent state, vector stores, databases and generated outputs.
+state/
+chroma_db*/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+logs/
+outputs/
+results/
+exports/
+packages/
+handoff_packages/
+*.log
+*.tar
+*.tar.gz
+*.zip
+*.bak
+*.backup*
+
+# Source datasets and trained artifacts are distributed separately.
+/chem-loop/data/
+/chem-loop/MAD/data/
+/chem-loop/youtu-chem-loop/data/
+/chem-loop/youtu-chem-loop/rawdata/
+/material_property_extraction/data/
+/material_property_extraction/results/
+/chem-loop/MAD/experience/experience.yaml*
+/chem-loop/MAD/experience/archive/
+/chem-loop/youtu-chem-loop/configs/agents/practice/experience.yaml*
+/chem-loop/youtu-chem-loop/configs/agents/practice/*_agent.yaml
+/chem-loop/youtu-chem-loop/debate_langgraph_*.json
+
+# Local source-export audits are not application data.
+/publication-audit.local.json

@@ -1,0 +1,58 @@
+# @package _global_
+#
+# Legacy MAD-in-GRPO config retained only to identify/reject old invocations and reproduce
+# historical configuration records. TrainingFreeGRPO intentionally rejects env.name=mad;
+# use chem_performance_single for every new GRPO run.
+#
+# Historical invocation (now rejected by the GRPO architecture guard):
+#   SQLITE_TMPDIR=/tmp TMPDIR=/tmp .venv/bin/python scripts/run_training_free_GRPO.py \
+#     --config_name chem_performance_mad \
+#     --experiment_name mad_smoke \
+#     --practice_dataset_name material_performance_19_v1 \
+#     --epochs 1 --batch_size 2 --grpo_n 1 --rollout_data_truncate 5 --rollout_concurrency 1
+#
+defaults:
+  - /eval/chem/chem_performance_mad@evaluation
+  - _self_
+
+exp_id: "chem_performance_practice_mad"
+
+practice:
+  epochs: 1
+  batch_size: 50
+  grpo_n: 3
+
+  rollout_temperature: 1
+  rollout_concurrency: 16
+  task_timeout: 1800
+  do_eval: false
+  rollout_data_truncate: 11291
+
+  agent_objective: |
+    Given an INPUT_JSON containing a required material_name, optional material description fields, and one task_type,
+    predict the requested performance metrics.
+
+    The working agent is expected to:
+    - Retrieve relevant historical experiences via the `search_experience` tool (experience RAG).
+    - Optionally retrieve literature snippets via `search_literature` when RAG is enabled.
+    - Produce best-effort numeric predictions for all requested metrics (no units in numeric fields).
+    - Normalize units before answering, including conductivity S/m, percentage metrics %, thermal conductivity
+      W m-1 K-1, magnetization emu/g, Neel temperature K, antibacterial concentration ppm, and zT dimensionless.
+    - Never invent absent synthesis, structure, composition, element-content, or condition fields.
+  learning_objective: |
+    Distill reusable, material-name-centered **micro-cards** that improve future predictions across all 19 tasks.
+
+    Each experience should be specific and retrievable (not vague process advice). Prefer cards that include:
+    - task_type (one of 19)
+    - exact material_name plus available material-description anchors
+    - explicit metal and nonmetal elements only when available
+    - target metric/application (exact key spelling)
+    - a concrete numeric anchor/range in the normalized target unit
+    - applicability boundary; when a condition is absent, state that it was not reported instead of inventing one
+    - multi-sentence paragraph style (at least 3 sentences; explain context -> anchor -> heuristic -> how-to-use -> caveat)
+
+    Avoid output-format rules (JSON / <think>/<answer>); those are enforced elsewhere.
+  num_experiences_per_query: 4
+
+data:
+  practice_dataset_name: "material_performance_19_v1"

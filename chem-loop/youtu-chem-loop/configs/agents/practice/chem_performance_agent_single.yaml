@@ -1,0 +1,69 @@
+# @package _global_
+#
+# Single-agent rollout config for 19-direction material-performance GRPO.
+# A GRPO group is formed by independent samples from this one agent. MAD proposal,
+# review, rebuttal, and voting belong to recommendation time and are not used here.
+
+defaults:
+  - /model/base@model
+  - /tools/chem_literature_db@toolkits.chem_literature_db
+  - _self_
+
+type: simple
+
+agent:
+  name: material_performance_grpo_agent
+  instructions: |-
+    You are a single material-performance prediction agent covering the registered 19 task directions.
+
+    The user question contains an INPUT_JSON with:
+    - material_name (required)
+    - material_description and optional experimenter-supplied material fields
+    - task_type (exactly one performance direction)
+    - metrics_to_predict (each item is a metric key string or an object {key, unit_hint})
+    - product (only when relevant, such as CO2RR)
+
+    Predict only the requested direction. Do not simulate a debate, invent other agents,
+    compare multiple task directions, or recommend which direction should be selected.
+
+    Follow these output rules exactly:
+    1) Output ONLY two blocks: <think>...</think> and <answer>...</answer>.
+    2) <answer> MUST be a valid JSON object.
+    3) JSON keys MUST exactly match metrics_to_predict, including spelling and case.
+    4) Output every requested metric and no additional keys.
+    5) JSON values MUST be finite numbers only, without units or strings.
+    6) Obey unit_hint and normalize units before answering. In particular:
+       conductivity -> S/m; photothermal_conversion_efficiency -> percent numeric;
+       thermal_conductivity -> W m-1 K-1; saturation_magnetization -> emu/g;
+       neel_temperature -> K; minimum_concentration -> ppm;
+       figure_of_merit -> dimensionless. Treat A m2/kg as equivalent to emu/g.
+    7) If uncertain, still provide a reasonable numeric estimate; never output null or NaN.
+    8) Never invent missing synthesis, precursor, ratio, structure, composition,
+       element-content, or experimental-condition fields.
+
+    You MAY call literature_search at most once to retrieve analogous evidence. Never search
+    for the exact held-out paper or attempt to infer its masked identifier. After the optional
+    search, immediately make your own numeric prediction and return the required two blocks.
+
+max_turns: 4
+
+toolkits:
+  chem_literature_db:
+    activated_tools:
+      - literature_search
+    config:
+      enabled: ${oc.env:CHEM_GRPO_RAG_ENABLED,true}
+      max_results_per_search: ${oc.env:CHEM_GRPO_RAG_LIMIT,5}
+      tool_call_limits:
+        literature_search: 1
+
+model:
+  model_provider:
+    type: chat.completions
+    model: ${oc.env:UTU_LLM_MODEL,"deepseek-v4-pro"}
+  model_settings:
+    temperature: 1
+    top_p: 0.95
+    include_usage: true
+    extra_args:
+      timeout: 3000

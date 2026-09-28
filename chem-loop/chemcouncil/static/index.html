@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ChemCouncil</title>
+    <link rel="stylesheet" href="/static/styles.css?v=material-serial-20260901a" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand">
+          <div class="brand-title">ChemCouncil</div>
+          <div class="brand-subtitle muted" data-i18n="app_subtitle"></div>
+        </div>
+        <div class="topbar-controls">
+          <div class="tz muted" data-i18n="tz_hint"></div>
+          <label class="inline">
+            <span class="sr-only" data-i18n="lang_label"></span>
+            <select id="lang-select" class="select">
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <button id="theme-toggle" class="secondary" type="button" data-i18n="theme_toggle"></button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="container nav">
+      <a class="nav-link" href="#recommend" data-route="recommend" data-i18n="nav_recommend"></a>
+      <a class="nav-link" href="#history" data-route="history" data-i18n="nav_history"></a>
+      <a class="nav-link" href="#feedback" data-route="feedback" data-i18n="nav_feedback"></a>
+      <a class="nav-link" href="#experience-build" data-route="experience-build" data-i18n="nav_experience_build"></a>
+      <a class="nav-link" href="#experience" data-route="experience" data-i18n="nav_experience"></a>
+      <a class="nav-link" href="#analysis" data-route="analysis" data-i18n="nav_analysis"></a>
+    </nav>
+
+    <main class="container">
+      <!-- Recommend -->
+      <section id="page-recommend" class="page card">
+        <h2 data-i18n="recommend_title"></h2>
+        <p class="muted" data-i18n="recommend_desc"></p>
+
+        <form id="form-recommend" class="stack">
+          <div class="card small recommend-count-panel">
+            <div class="row">
+              <label>
+                <span data-i18n="recommend_material_count_label"></span>
+                <select id="recommend-material-count" class="select">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                </select>
+              </label>
+              <div class="hint muted recommend-count-summary" id="recommend-count-summary" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div id="recommend-material-list" class="stack recommend-material-list"></div>
+
+          <label>
+            <span data-i18n="recommend_task_type_label"></span>
+            <select id="recommend-task-type" class="select"></select>
+            <div class="hint muted" data-i18n="recommend_task_type_hint"></div>
+          </label>
+
+          <div class="stack">
+            <div class="label" data-i18n="property_types_default_label"></div>
+            <div class="hint muted" data-i18n="property_types_default_hint"></div>
+            <div id="task-overview" class="task-overview" aria-live="polite"></div>
+          </div>
+
+          <details class="details">
+            <summary data-i18n="advanced_settings"></summary>
+            <div class="row">
+              <label>
+                <span data-i18n="recommend_topk_label"></span>
+                <input id="recommend-topk" type="number" min="1" max="19" value="2" />
+                <div class="hint muted" data-i18n="recommend_topk_hint"></div>
+              </label>
+              <label>
+                <span data-i18n="recommend_parallel_label"></span>
+                <input id="recommend-parallel" type="number" min="1" max="19" value="1" />
+                <div class="hint muted" data-i18n="recommend_parallel_hint"></div>
+              </label>
+            </div>
+          </details>
+
+          <div class="row">
+            <button id="btn-recommend" type="submit" data-i18n="btn_start_recommend"></button>
+            <button id="btn-recommend-log" type="button" class="secondary" disabled data-i18n="btn_view_log"></button>
+            <button id="btn-recommend-stop" type="button" class="secondary" disabled data-i18n="btn_stop_job"></button>
+          </div>
+        </form>
+
+        <div id="recommend-status" class="card small muted" data-i18n="status_idle"></div>
+        <div id="recommend-running" class="running hidden" hidden aria-hidden="true" aria-busy="false">
+          <div class="spinner" aria-hidden="true"></div>
+          <div class="running-text muted" id="recommend-running-text"></div>
+        </div>
+        <div id="recommend-result" class="card small hidden"></div>
+
+        <details class="details">
+          <summary data-i18n="log_section"></summary>
+          <pre id="recommend-log" class="log">(empty)</pre>
+        </details>
+      </section>
+
+      <!-- History -->
+      <section id="page-history" class="page card hidden">
+        <h2 data-i18n="history_title"></h2>
+        <p class="muted" data-i18n="history_desc"></p>
+
+        <div class="card small">
+          <div class="row">
+            <label class="grow">
+              <span data-i18n="history_search_label"></span>
+              <input id="history-search" type="text" placeholder="CuO, OER" />
+              <div class="hint muted" data-i18n="history_search_hint"></div>
+            </label>
+            <label class="inline">
+              <span data-i18n="history_show_deleted_label"></span>
+              <input id="history-show-deleted" type="checkbox" />
+            </label>
+            <button id="btn-refresh-history" type="button" class="secondary" data-i18n="btn_refresh"></button>
+          </div>
+        </div>
+
+        <div id="history-list" class="card small">Loading…</div>
+        <details class="details">
+          <summary data-i18n="history_raw_jobs_title"></summary>
+          <pre id="history-raw" class="log">(empty)</pre>
+        </details>
+      </section>
+
+      <!-- Feedback -->
+      <section id="page-feedback" class="page card hidden">
+        <h2 data-i18n="feedback_title"></h2>
+        <p class="muted" data-i18n="feedback_desc"></p>
+
+        <form id="form-update" class="stack">
+          <div id="update-mode-manual" class="stack">
+            <div class="hint muted" data-i18n="manual_hint"></div>
+
+            <div class="card small">
+              <div class="row">
+                <label class="grow">
+                  <span data-i18n="reco_search_label"></span>
+                  <input id="reco-search" type="text" placeholder="CuO, conductivity" />
+                  <div class="hint muted" data-i18n="reco_search_hint"></div>
+                </label>
+                <button id="btn-reco-refresh" type="button" class="secondary" data-i18n="btn_refresh"></button>
+                <button id="btn-add-reco-group" type="button" class="secondary" data-i18n="btn_add_reco_group"></button>
+              </div>
+              <div id="reco-suggestions" class="suggestions hidden"></div>
+              <div class="hint muted" data-i18n="reco_groups_hint"></div>
+            </div>
+
+            <div id="manual-groups" class="stack"></div>
+          </div>
+
+          <label>
+            <span data-i18n="tag_label"></span>
+            <input id="update-tag" type="text" value="lab" />
+            <div class="hint muted" data-i18n="tag_hint"></div>
+          </label>
+
+          <details class="details">
+            <summary data-i18n="advanced_settings"></summary>
+            <div class="hint muted" data-i18n="update_advanced_hint"></div>
+            <div class="row">
+              <label>
+                <span data-i18n="batch_size_label"></span>
+                <input id="update-batch-size" type="number" min="1" value="19" readonly />
+                <div class="hint muted" data-i18n="batch_size_hint"></div>
+              </label>
+              <label>
+                <span data-i18n="grpo_n_label"></span>
+                <input id="update-n" type="number" min="1" value="3" />
+                <div class="hint muted" data-i18n="grpo_n_hint"></div>
+              </label>
+              <label>
+                <span data-i18n="rollout_c_label"></span>
+                <input id="update-c" type="number" min="1" value="4" />
+                <div class="hint muted" data-i18n="rollout_c_hint"></div>
+              </label>
+              <label>
+                <span data-i18n="epochs_label"></span>
+                <input id="update-e" type="number" min="1" value="1" />
+                <div class="hint muted" data-i18n="epochs_hint"></div>
+              </label>
+              <label class="inline">
+                <span data-i18n="feedback_rag_label"></span>
+                <input id="update-rag" type="checkbox" checked disabled />
+                <div class="hint muted" data-i18n="feedback_rag_hint"></div>
+              </label>
+            </div>
+          </details>
+
+          <div class="row">
+            <button id="btn-update" type="submit" data-i18n="btn_start_update"></button>
+            <button id="btn-update-log" type="button" class="secondary" disabled data-i18n="btn_view_log"></button>
+            <button id="btn-update-stop" type="button" class="secondary" disabled data-i18n="btn_stop_job"></button>
+          </div>
+        </form>
+
+        <div id="update-status" class="card small muted" data-i18n="status_idle"></div>
+        <div id="update-running" class="running hidden" hidden aria-hidden="true" aria-busy="false">
+          <div class="spinner" aria-hidden="true"></div>
+          <div class="running-col">
+            <div class="running-text muted" id="update-running-text"></div>
+            <div class="progressbar" aria-hidden="true"><div id="update-progress-fill"></div></div>
+            <div class="hint muted" id="update-progress-hint"></div>
+          </div>
+        </div>
+        <div id="update-result" class="card small hidden"></div>
+
+        <details class="details">
+          <summary data-i18n="log_section"></summary>
+          <pre id="update-log" class="log">(empty)</pre>
+        </details>
+      </section>
+
+      <!-- Experience Build -->
+      <section id="page-experience-build" class="page card hidden">
+        <h2 data-i18n="experience_build_title"></h2>
+        <p class="muted" data-i18n="experience_build_desc"></p>
+
+        <form id="form-experience-build" class="stack">
+          <div class="card small">
+            <div class="label" data-i18n="experience_build_flow_label"></div>
+            <div class="workflow-steps">
+              <span data-i18n="experience_build_step_dataset"></span>
+              <span data-i18n="experience_build_step_grpo"></span>
+              <span data-i18n="experience_build_step_sync"></span>
+              <span data-i18n="experience_build_step_recommend"></span>
+            </div>
+          </div>
+
+          <label>
+            <span data-i18n="experience_build_mode_label"></span>
+            <select id="experience-build-mode" class="select">
+              <option value="prepare_only" data-i18n="experience_build_mode_prepare"></option>
+              <option value="pilot" data-i18n="experience_build_mode_pilot"></option>
+              <option value="full" data-i18n="experience_build_mode_full"></option>
+            </select>
+            <div class="hint muted" data-i18n="experience_build_mode_hint"></div>
+          </label>
+
+          <details class="details">
+            <summary data-i18n="advanced_settings"></summary>
+            <div class="row">
+              <label>
+                <span data-i18n="experience_build_exp_name_label"></span>
+                <input id="experience-build-exp-name" type="text" placeholder="material_performance_19_pilot_rag" />
+                <div class="hint muted" data-i18n="experience_build_exp_name_hint"></div>
+              </label>
+              <label>
+                <span data-i18n="experience_build_truncate_label"></span>
+                <input id="experience-build-truncate" type="number" min="1" value="11291" />
+                <div class="hint muted" data-i18n="experience_build_truncate_hint"></div>
+              </label>
+              <label>
+                <span data-i18n="experience_build_batch_label"></span>
+                <input id="experience-build-batch" type="number" min="1" value="50" />
+                <div class="hint muted" data-i18n="experience_build_batch_hint"></div>
+              </label>
+              <label>
+                <span data-i18n="experience_build_grpo_n_label"></span>
+                <input id="experience-build-grpo-n" type="number" min="1" value="3" />
+                <div class="hint muted" data-i18n="experience_build_grpo_n_hint"></div>
+              </label>
+              <label>
+                <span data-i18n="experience_build_concurrency_label"></span>
+                <input id="experience-build-concurrency" type="number" min="1" value="1" />
+                <div class="hint muted" data-i18n="experience_build_concurrency_hint"></div>
+              </label>
+              <label class="inline">
+                <span data-i18n="experience_build_rag_label"></span>
+                <input id="experience-build-rag" type="checkbox" checked />
+              </label>
+              <label class="inline">
+                <span data-i18n="experience_build_resume_label"></span>
+                <input id="experience-build-resume" type="checkbox" />
+              </label>
+            </div>
+          </details>
+
+          <div class="row">
+            <button id="btn-experience-build" type="submit" data-i18n="btn_start_experience_build"></button>
+            <button id="btn-experience-build-log" type="button" class="secondary" disabled data-i18n="btn_view_log"></button>
+            <button id="btn-experience-build-stop" type="button" class="secondary" disabled data-i18n="btn_stop_job"></button>
+          </div>
+        </form>
+
+        <div id="experience-build-status" class="card small muted" data-i18n="status_idle"></div>
+        <div id="experience-build-running" class="running hidden" hidden aria-hidden="true" aria-busy="false">
+          <div class="spinner" aria-hidden="true"></div>
+          <div class="running-col">
+            <div class="running-text muted" id="experience-build-running-text"></div>
+            <div class="progressbar" aria-hidden="true"><div id="experience-build-progress-fill"></div></div>
+            <div class="hint muted" id="experience-build-progress-hint"></div>
+          </div>
+        </div>
+        <div id="experience-build-result" class="card small hidden"></div>
+
+        <details class="details">
+          <summary data-i18n="log_section"></summary>
+          <pre id="experience-build-log" class="log">(empty)</pre>
+        </details>
+      </section>
+
+      <!-- Experience -->
+      <section id="page-experience" class="page card hidden">
+        <h2 data-i18n="experience_title"></h2>
+        <p class="muted" data-i18n="experience_desc"></p>
+
+        <div class="row">
+          <button id="btn-refresh-meta" class="secondary" type="button" data-i18n="btn_refresh"></button>
+          <a id="link-download-pack" class="secondary" href="/api/experience/pack" target="_blank" rel="noreferrer" data-i18n="btn_download_current"></a>
+        </div>
+
+        <div id="experience-meta" class="card small">Loading…</div>
+
+        <details class="details" open>
+          <summary data-i18n="experience_view_current"></summary>
+          <div id="experience-current" class="stack">
+            <div class="hint muted" data-i18n="experience_view_hint"></div>
+            <div class="card small">
+              <div class="row">
+                <label class="grow">
+                  <span data-i18n="experience_search_label"></span>
+                  <input
+                    id="experience-search"
+                    type="text"
+                    data-i18n-placeholder="experience_search_placeholder"
+                    placeholder="conductivity / Fe / thermal"
+                  />
+                  <div class="hint muted" data-i18n="experience_search_hint"></div>
+                </label>
+                <button id="btn-experience-search-clear" type="button" class="secondary" data-i18n="btn_clear"></button>
+              </div>
+              <div id="experience-search-count" class="hint muted"></div>
+              <div id="experience-pagination" class="row"></div>
+            </div>
+            <div id="experience-current-guidelines" class="stack"></div>
+            <details class="details">
+              <summary data-i18n="experience_view_raw"></summary>
+              <pre id="experience-current-raw" class="log">(empty)</pre>
+            </details>
+          </div>
+        </details>
+
+        <details class="details">
+          <summary data-i18n="experience_history_title"></summary>
+          <div id="experience-history" class="card small">Loading…</div>
+          <div id="experience-history-view" class="card small hidden"></div>
+        </details>
+      </section>
+
+      <!-- Analysis -->
+      <section id="page-analysis" class="page card hidden">
+        <h2 data-i18n="analysis_title"></h2>
+        <p class="muted" data-i18n="analysis_desc"></p>
+
+        <div class="row">
+          <button id="btn-refresh-analysis" class="secondary" type="button" data-i18n="btn_refresh"></button>
+        </div>
+
+        <div id="analysis-controls" class="card small">
+          <div class="row">
+            <label class="inline">
+              <span data-i18n="analysis_agg_kind_label"></span>
+              <select id="analysis-agg-kind" class="select"></select>
+            </label>
+            <label class="inline" id="analysis-agg-step-wrap">
+              <span data-i18n="analysis_agg_step_label"></span>
+              <select id="analysis-agg-step" class="select"></select>
+            </label>
+          </div>
+          <div id="analysis-agg-hint" class="hint muted"></div>
+        </div>
+
+        <div id="analysis-summary" class="card small">Loading…</div>
+        <div id="analysis-chart" class="card small hidden"></div>
+        <div id="analysis-rounds" class="card small hidden"></div>
+        <details class="details">
+          <summary data-i18n="analysis_records_title"></summary>
+          <pre id="analysis-records" class="log">(empty)</pre>
+        </details>
+      </section>
+    </main>
+
+    <script src="/static/app.js?v=material-serial-20260901a"></script>
+  </body>
+</html>

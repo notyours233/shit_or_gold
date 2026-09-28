@@ -1,0 +1,42 @@
+# @package _global_
+# Training-Free GRPO for the 19-direction material-performance dataset.
+# Rollouts are independent samples from one agent; MAD is recommendation-only.
+
+defaults:
+  - /eval/chem/chem_performance_single@evaluation
+  - _self_
+
+exp_id: "chem_performance_practice_single"
+
+practice:
+  epochs: 1
+  batch_size: 50
+  grpo_n: 3
+
+  rollout_temperature: 1
+  rollout_concurrency: 16
+  task_timeout: 1800
+  do_eval: false
+  rollout_data_truncate: 11291
+
+  agent_objective: |
+    Given an INPUT_JSON containing a required material_name, optional experimenter-supplied material fields,
+    and exactly one task_type, independently predict all requested numeric performance metrics. The agent may
+    retrieve one analogous literature result, but it must not run a multi-agent debate or rank task directions.
+  learning_objective: |
+    Distill reusable, material-name-centered micro-cards that improve future predictions across all 19 tasks.
+
+    Each experience should be specific and retrievable. Prefer cards that include:
+    - task_type (one of the registered 19 directions)
+    - exact material_name plus only the material-description anchors actually supplied
+    - explicit metal and nonmetal elements only when available
+    - target metric/application with exact key spelling
+    - a concrete numeric anchor or range in the normalized target unit
+    - an applicability boundary; say a condition was not reported instead of inventing it
+    - a multi-sentence paragraph covering context, anchor, heuristic, use, and caveat
+
+    Do not turn JSON or <think>/<answer> formatting rules into experiences.
+  num_experiences_per_query: 4
+
+data:
+  practice_dataset_name: "material_performance_19_v1"

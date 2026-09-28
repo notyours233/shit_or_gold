@@ -1,0 +1,51 @@
+services:
+  chemcouncil:
+    # Pull the released image by default. Set CHEMCOUNCIL_IMAGE to another
+    # registry/tag when deploying another release.
+    image: ${CHEMCOUNCIL_IMAGE:-harbor.pic-aichem.online/wangzm/chemcouncil-material:20260902}
+    container_name: chemcouncil
+    restart: unless-stopped
+    ports:
+      - "${CHEMCOUNCIL_PUBLIC_PORT:-8000}:8000"
+    env_file:
+      - .env
+    # Persist *data* on the host, but keep the image clean (no embedded DBs).
+    # All persistent state is wired under /state via symlinks created in Dockerfile.
+    volumes:
+      - ${CHEMCOUNCIL_STATE_DIR:-./state}:/state
+      - ${CHEMCOUNCIL_CHROMA_DIR:-./MAD/data/chroma_db}:/state/chroma_db
+    environment:
+      # Keep job logs/uploads/results on the host.
+      CHEMCOUNCIL_JOBS_ROOT: "/state/jobs"
+      # IMPORTANT: use an absolute sqlite path so subprocesses (cwd varies) share the same DB.
+      UTU_DB_URL: "sqlite:////state/test.db"
+      CHEMCOUNCIL_HOST: "0.0.0.0"
+      CHEMCOUNCIL_PORT: "8000"
+      # General background-job concurrency (experience generation/updates).
+      CHEMCOUNCIL_JOB_CONCURRENCY: "${CHEMCOUNCIL_JOB_CONCURRENCY:-1}"
+      # Material recommendation jobs have their own pool. The frontend submits
+      # up to ten cards concurrently; lower this on small servers.
+      CHEMCOUNCIL_RECOMMENDATION_CONCURRENCY: "${CHEMCOUNCIL_RECOMMENDATION_CONCURRENCY:-10}"
+      CHEMCOUNCIL_EXPERIENCE_BATCH_SIZE: "${CHEMCOUNCIL_EXPERIENCE_BATCH_SIZE:-19}"
+      CHEMCOUNCIL_EXPERIENCE_GRPO_N: "${CHEMCOUNCIL_EXPERIENCE_GRPO_N:-3}"
+      CHEMCOUNCIL_EXPERIENCE_ROLLOUT_CONCURRENCY: "${CHEMCOUNCIL_EXPERIENCE_ROLLOUT_CONCURRENCY:-4}"
+      CHEMCOUNCIL_EXPERIENCE_EPOCHS: "${CHEMCOUNCIL_EXPERIENCE_EPOCHS:-1}"
+      CHEMCOUNCIL_FEEDBACK_ALIGNMENT_TIMEOUT_S: "${CHEMCOUNCIL_FEEDBACK_ALIGNMENT_TIMEOUT_S:-900}"
+      # youtu-chem-loop -> MAD external engine subprocess python.
+      # In Docker we don't ship a repo-local .venv, so force the system python inside the image.
+      MAD_PYTHON_BIN: "/usr/local/bin/python"
+      # RAG: shared mode is the deployment default and uses the verified
+      # Voyage-backed collection. Set MAD_RAG_MODE=per_agent explicitly only
+      # when the host has enough memory and all four embedding routes are ready.
+      MAD_ENABLE_RAG: "${MAD_ENABLE_RAG:-1}"
+      CHEM_LITERATURE_BACKEND: "chroma"
+      CHEM_LITERATURE_CHROMA_DIR: "/state/chroma_db"
+      CHEM_LITERATURE_CHROMA_COLLECTION: "${CHEM_LITERATURE_CHROMA_COLLECTION:-literature_agent2}"
+      # Switch via env only:
+      # - Server default / lower memory: MAD_RAG_MODE=shared
+      # - Optional high-memory mode: MAD_RAG_MODE=per_agent
+      MAD_RAG_MODE: "${MAD_RAG_MODE:-shared}"
+      MAD_RAG_SHARED_AGENT: "${MAD_RAG_SHARED_AGENT:-agent2}"
+      MAD_RAG_SHARED_COLLECTION: "${MAD_RAG_SHARED_COLLECTION:-literature_agent2}"
+      MAD_RAG_SHARED_REACTION_COLLECTION: "${MAD_RAG_SHARED_REACTION_COLLECTION:-literature_agent2}"
+      MAD_RAG_REACTION_PERSIST_DIR: "${MAD_RAG_REACTION_PERSIST_DIR:-/app/MAD/data/chroma_db}"

@@ -1,0 +1,83 @@
+# @package _global_
+#
+# Legacy evaluation agent config that uses the MAD repo as an external rollout engine.
+# It must not be selected by TrainingFreeGRPO.
+#
+# How it works:
+# - During rollout, `utu/eval/benchmarks/base_benchmark.py` detects `env.name == "mad"` and
+#   calls `utu/external_engines/mad_engine.py` (subprocess) instead of openai-agents Runner.
+# - The legacy evaluation output remains compatible with verify through <think>/<answer>.
+#
+# Required env (shared with youtu-agent):
+#   UTU_LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+#   UTU_LLM_API_KEY=<your DASHSCOPE_API_KEY>
+#   UTU_LLM_MODEL=deepseek-v4-pro
+#
+# MAD engine settings (optional env overrides):
+#   MAD_REPO_PATH=../MAD
+#   MAD_PYTHON_BIN=../.venv/bin/python   # single-venv monorepo default
+#   # Or use a separate MAD venv:
+#   # MAD_PYTHON_BIN=../MAD/.venv/bin/python
+#
+# Optional: enable literature RAG inside MAD (uses youtu-agent's local Chroma DB + masking):
+#   MAD_ENABLE_RAG=1
+#   MAD_RAG_LIMIT=5
+#   MAD_RAG_MAX_DISTANCE=0.35
+#   MAD_RAG_TIMEOUT_S=30
+# If your youtu-agent venv is not at `.venv`, override:
+#   YOUTU_PYTHON_BIN=/abs/path/to/youtu-agent/.venv/bin/python
+#   YOUTU_CHEM_LITERATURE_RUNNER=/abs/path/to/youtu-agent/utu/external_engines/chem_literature_runner.py
+#
+defaults:
+  - /model/base@model
+  - _self_
+
+agent:
+  name: material_property_agent
+  instructions: |-
+    You are a material-performance prediction assistant covering the registered 19 task directions.
+
+    The user question contains an INPUT_JSON with:
+    - material_name (required)
+    - material_description and optional structured/custom material fields
+    - task_type
+    - metrics_to_predict (each item is either a metric key string, or an object {key, unit_hint})
+
+    Follow the task in the question and obey these output rules exactly:
+    1) Output ONLY two blocks: <think>...</think> and <answer>...</answer>. Do not output any other text.
+    2) <answer> MUST be a valid JSON object (dict).
+    3) The JSON keys MUST exactly match the metric names in metrics_to_predict (same spelling and case).
+    4) Output ALL metrics listed in metrics_to_predict; do not miss any and do not add extra keys.
+    5) JSON values MUST be numbers only (no units, no strings).
+    6) Use unit_hint if provided. Normalize units before answering:
+       conductivity -> S/m; photothermal_conversion_efficiency -> % numeric;
+       thermal_conductivity -> W m-1 K-1; saturation_magnetization -> emu/g;
+       neel_temperature -> K; minimum_concentration -> ppm; figure_of_merit -> dimensionless.
+       Treat A m2/kg as equivalent to emu/g.
+    7) If you are unsure, still output a reasonable numeric estimate (do not output null/NaN).
+    8) Never invent missing synthesis, structure, composition, element-content, or condition fields.
+
+# max_turns is not used by the MAD engine path, but keep a reasonable default for compatibility.
+max_turns: 10
+
+# Rollout engine selector.
+env:
+  name: mad
+  config:
+    mad_repo_path: ${oc.env:MAD_REPO_PATH,"../MAD"}
+    python_bin: ${oc.env:MAD_PYTHON_BIN,"../.venv/bin/python"}
+    timeout_s: ${oc.env:MAD_TIMEOUT_S,1800}
+    max_react_steps: ${oc.env:MAD_MAX_REACT_STEPS,6}
+    agent_name: ${oc.env:MAD_AGENT_NAME,"mad_engine"}
+
+# Model config retained for legacy evaluation/config-loading compatibility.
+model:
+  model_provider:
+    type: chat.completions
+    model: ${oc.env:UTU_LLM_MODEL,"deepseek-v4-pro"}
+  model_settings:
+    temperature: 1
+    top_p: 0.95
+    include_usage: true
+    extra_args:
+      timeout: 3000

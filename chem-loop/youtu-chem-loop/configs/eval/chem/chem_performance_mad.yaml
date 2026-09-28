@@ -1,0 +1,22 @@
+# @package _global_
+#
+# Chem-performance eval config using the MAD external engine for rollouts.
+#
+# NOTE: verify logic is unchanged; the response must still include <think>/<answer>.
+#
+defaults:
+  - /agents/practice/chem_performance_agent_mad@agent
+  - _self_
+
+exp_id: "chem_performance_eval_mad"
+
+data:
+  dataset: "material_performance_19_v1"
+
+concurrency: 16
+pass_k: 1
+
+# Verification (non-LLM) under `utu/practice/verify/`
+verify_filename: "chem_performance_verify.py"
+verify_func_name: "verify_func"
+judge_concurrency: 64

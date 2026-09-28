@@ -1,0 +1,6 @@
+Ni(69.00%), Co(19.07%), Fe(11.48%), Cu(0.40%), Zn(0.05%)
+
+# Notes
+# - The current "Recommend" UI expects exactly 5 metal elements in rank mode.
+# - Percentages are optional; symbols-only also works (e.g., "Ni,Co,Fe,Cu,Zn").
+
